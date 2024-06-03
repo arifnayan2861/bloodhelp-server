@@ -30,6 +30,9 @@ async function run() {
   try {
     await client.connect();
     const usersCollection = client.db("BloodHelpDB").collection("users");
+    const donationsCollection = client
+      .db("BloodHelpDB")
+      .collection("donations");
 
     //jwt api
     app.post("/jwt", async (req, res) => {
@@ -56,6 +59,31 @@ async function run() {
     app.get("/user/:email", async (req, res) => {
       const email = req.params.email;
       const result = await usersCollection.findOne({ email: email });
+      res.send(result);
+    });
+
+    //update donor info
+    app.patch("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const updatedUserInfo = req.body;
+      const user = {
+        $set: {
+          name: updatedUserInfo.name,
+          photoURL: updatedUserInfo.photoURL,
+          bloodGroup: updatedUserInfo.bloodGroup,
+          "address.district": updatedUserInfo.address.district,
+          "address.upazila": updatedUserInfo.address.upazila,
+        },
+      };
+      const result = await booksCollection.updateOne(filter, user);
+      res.send(result);
+    });
+
+    //create donation request
+    app.post("/create-donation-request", async (req, res) => {
+      const donation = req.body;
+      const result = await donationsCollection.insertOne(donation);
       res.send(result);
     });
 
