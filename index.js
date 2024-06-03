@@ -95,6 +95,47 @@ async function run() {
         .toArray();
       res.send(result);
     });
+
+    //get single donation request data
+    app.get("/edit-donation-request/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await donationsCollection.findOne(query);
+      res.send(result);
+    });
+
+    //update single donation request data
+    app.patch("/edit-donation-request/:id", async (req, res) => {
+      const data = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedRequest = {
+        $set: {
+          recipientName: data.recipientName,
+          recipientDistrict: data.recipientDistrict,
+          recipientUpazila: data.recipientUpazila,
+          hospitalName: data.hospitalName,
+          addressLine: data.addressLine,
+          donationDate: data.donationDate,
+          donationTime: data.donationTime,
+          requestMessage: data.requestMessage,
+        },
+      };
+      const result = await donationsCollection.updateOne(
+        filter,
+        updatedRequest
+      );
+      res.send(result);
+    });
+
+    //delete single donation data
+    app.delete("/donation-request/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await donationsCollection.deleteOne(query);
+      res.send(result);
+    });
+
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
