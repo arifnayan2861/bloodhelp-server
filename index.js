@@ -160,6 +160,34 @@ async function run() {
       res.send(result);
     });
 
+    //update user status
+    app.patch("/user/status/:id", async (req, res) => {
+      const data = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedUser = {
+        $set: {
+          status: data.status,
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updatedUser);
+      res.send(result);
+    });
+
+    //update user role
+    app.patch("/user/role/:id", async (req, res) => {
+      const data = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedUser = {
+        $set: {
+          role: data.role,
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updatedUser);
+      res.send(result);
+    });
+
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
