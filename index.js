@@ -33,6 +33,7 @@ async function run() {
     const donationsCollection = client
       .db("BloodHelpDB")
       .collection("donations");
+    const blogsCollection = client.db("BloodHelpDB").collection("blogs");
 
     //jwt api
     app.post("/jwt", async (req, res) => {
@@ -185,6 +186,44 @@ async function run() {
         },
       };
       const result = await usersCollection.updateOne(filter, updatedUser);
+      res.send(result);
+    });
+
+    //get all blogs
+    app.get("/blogs", async (req, res) => {
+      // const result = await blogsCollection.find().toArray();
+      // res.send(result);
+      const status = req.query.status;
+      const query = status && status !== "all" ? { status } : {};
+      const blogs = await blogsCollection.find(query).toArray();
+      res.send(blogs);
+    });
+
+    //create blog
+    app.post("/blogs", async (req, res) => {
+      const blog = req.body;
+      const result = await blogsCollection.insertOne(blog);
+      res.send(result);
+    });
+
+    //delete blog
+    app.delete("/blogs/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await blogsCollection.deleteOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
+
+    //update blog status
+    app.patch("/blogs/status/:id", async (req, res) => {
+      const data = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedBlog = {
+        $set: {
+          status: data.status,
+        },
+      };
+      const result = await blogsCollection.updateOne(filter, updatedBlog);
       res.send(result);
     });
 
