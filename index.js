@@ -227,6 +227,50 @@ async function run() {
       res.send(result);
     });
 
+    //search donation requests
+    app.get("/search-donors", async (req, res) => {
+      const { bloodGroup, district, upazila } = req.query;
+
+      // Create a query object based on the query parameters
+      const query = {
+        bloodGroup: bloodGroup,
+        district: district,
+        upazila: upazila,
+      };
+      // if (bloodGroup && bloodGroup !== "all") {
+      //   query.bloodGroup = bloodGroup;
+      // }
+      // if (district && district !== "all") {
+      //   query.district = district;
+      // }
+      // if (upazila && upazila !== "all") {
+      //   query.upazila = upazila;
+      // }
+
+      try {
+        const donations = await donationsCollection.find(query).toArray();
+        // res.send(donations);
+        console.log(donations);
+      } catch (error) {
+        console.error("Error fetching donors:", error);
+        res.status(500).send("An error occurred while fetching donors");
+      }
+    });
+
+    //update donation status
+    app.patch("/donation/status/:id", async (req, res) => {
+      const data = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedStatus = {
+        $set: {
+          status: data.status,
+        },
+      };
+      const result = await donationsCollection.updateOne(filter, updatedStatus);
+      res.send(result);
+    });
+
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
