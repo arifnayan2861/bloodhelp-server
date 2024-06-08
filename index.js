@@ -1,8 +1,9 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const port = process.env.PORT || 5000;
 
@@ -34,6 +35,7 @@ async function run() {
       .db("BloodHelpDB")
       .collection("donations");
     const blogsCollection = client.db("BloodHelpDB").collection("blogs");
+    const fundsCollection = client.db("BloodHelpDB").collection("funds");
 
     //jwt api
     app.post("/jwt", async (req, res) => {
@@ -230,7 +232,7 @@ async function run() {
     //search donation requests
     app.get("/search-donors", async (req, res) => {
       const { bloodGroup, district, upazila } = req.query;
-
+      console.log(req.query);
       // Create a query object based on the query parameters
       const query = {
         bloodGroup: bloodGroup,
@@ -249,8 +251,8 @@ async function run() {
 
       try {
         const donations = await donationsCollection.find(query).toArray();
-        // res.send(donations);
-        console.log(donations);
+        res.send(donations);
+        // console.log(donations);
       } catch (error) {
         console.error("Error fetching donors:", error);
         res.status(500).send("An error occurred while fetching donors");
@@ -276,6 +278,31 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await blogsCollection.findOne(query);
+      res.send(result);
+    });
+
+    //payment intent api
+    app.post("/create-payment-intent", async (req, res) => {
+      const { fund } = req.body;
+      const amount = parseInt(fund * 100);
+      // console.log(amount, "amount inside the intent");
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        // payment_method_types: ["card"],
+        payment_method_types: ["card"],
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
+    });
+
+    //store donation in db
+    app.post("/fund", async (req, res) => {
+      const fundInfo = req.body;
+      const result = await fundsCollection.insertOne(fundInfo);
       res.send(result);
     });
 
