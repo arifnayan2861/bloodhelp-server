@@ -306,6 +306,12 @@ async function run() {
       res.send(result);
     });
 
+    //get fund data
+    app.get("/get-funds", async (req, res) => {
+      const result = await fundsCollection.find().toArray();
+      res.send(result);
+    });
+
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
